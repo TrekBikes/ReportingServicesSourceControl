@@ -9,29 +9,26 @@ using System.Configuration;
 
 namespace ReportingServicesSourceControl.SourceControl
 {
-    class SVN : ISourceControl
+    class git : ISourceControl
     {
-        bool _svnAuth = false;
-        string _username;
-        string _password;
+        string _path;
+        string _repoRoot;
 
-        public SVN(bool SVNAuth)
+        public git()
         {
-            NameValueCollection appSettings = System.Configuration.ConfigurationManager.AppSettings;
-
-            _svnAuth = SVNAuth;
-            _username = ConfigurationManager.AppSettings["sourceControlUsername"];
-            _password = ConfigurationManager.AppSettings["sourceControlPassword"];
-
+            _path = System.Configuration.ConfigurationManager.AppSettings["gitPath"];
+            _repoRoot = System.Configuration.ConfigurationManager.AppSettings["rootPath"];
         }
+
 
         public bool Add(string Path)
         {
             return ExecuteCommand("add", Path);
         }
 
-        public bool Delete(string Path) {
-            return ExecuteCommand("delete", Path);
+        public bool Delete(string Path)
+        {
+            return ExecuteCommand("rm", Path);
         }
 
         public bool Update(string Path)
@@ -41,7 +38,7 @@ namespace ReportingServicesSourceControl.SourceControl
 
         public bool Commit(string Path)
         {
-            return ExecuteCommand("commit", Path, "");
+            return ExecuteCommand("commit -a", null, "ReportingServicesSourceControl Commit");
         }
 
         private bool ExecuteCommand(string Command, string Path)
@@ -49,12 +46,13 @@ namespace ReportingServicesSourceControl.SourceControl
             return ExecuteCommand(Command, Path, null);
         }
 
-        private bool ExecuteCommand(string Command, string Path, string Message) 
+        private bool ExecuteCommand(string Command, string Path, string Message)
         {
-            ProcessStartInfo svnCmd = new ProcessStartInfo();
-            svnCmd.FileName = "svn.exe";
-            svnCmd.CreateNoWindow = true;
-            svnCmd.WindowStyle = ProcessWindowStyle.Hidden;
+            ProcessStartInfo gitCmd = new ProcessStartInfo();
+            gitCmd.FileName = _path;
+            gitCmd.CreateNoWindow = true;
+            gitCmd.WindowStyle = ProcessWindowStyle.Hidden;
+            gitCmd.WorkingDirectory = _repoRoot;
 
             if (Message != null)
             {
@@ -65,19 +63,18 @@ namespace ReportingServicesSourceControl.SourceControl
                 Message = "";
             }
 
-            // svn add
-            if (_svnAuth)
+            if (Path != null)
             {
-                svnCmd.Arguments = string.Format("{0} \"{1}\"{2} --username {3} --password {4}", Command, Path, Message, _username, _password);
+                gitCmd.Arguments = string.Format("{0} \"{1}\"{2} ", Command, Path, Message);
             }
             else
             {
-                svnCmd.Arguments = string.Format("{0} \"{1}\"{2} ", Command, Path, Message);
+                gitCmd.Arguments = string.Format("{0} {1} ", Command, Message);
             }
 
-            //System.Console.WriteLine("svn.exe " + svnCmd.Arguments);
+            System.Console.WriteLine(_path + " " + gitCmd.Arguments);
 
-            Process pCmd = Process.Start(svnCmd);
+            Process pCmd = Process.Start(gitCmd);
 
             //Wait for the process to end.
             pCmd.WaitForExit();

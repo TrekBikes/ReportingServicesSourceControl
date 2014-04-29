@@ -11,6 +11,8 @@ namespace ReportingServicesSourceControl
 {
     class Program
     {
+        enum SourceControlProvider { git, SVN };
+
         private static bool _emailOnError;
         private static string _emailServer;
         private static string _emailFrom;
@@ -27,14 +29,29 @@ namespace ReportingServicesSourceControl
 
             string lastServer = "Unknown";
 
+            SourceControlProvider scp = (SourceControlProvider)System.Enum.Parse(typeof(SourceControlProvider), ConfigurationManager.AppSettings["SourceControl"]);
+
+            SourceControl.ISourceControl sc;
+
+            if (scp == SourceControlProvider.git)
+            {
+                sc = new SourceControl.git();
+            }
+            else if (scp == SourceControlProvider.SVN)
+            {
+                sc = new SourceControl.SVN(true);
+            }
+            else
+            {
+                throw new Exception("Bad SourceControlProvider");
+            }
+
+
+
             try
             {
                 ServerConfiguration reportServers = (ServerConfiguration)ConfigurationManager.GetSection("reportServers");
-                string scUser = ConfigurationManager.AppSettings["sourceControlUsername"];
-                string scPass = ConfigurationManager.AppSettings["sourceControlPassword"];
                 string rootPath = ConfigurationManager.AppSettings["rootPath"];
-                SourceControl.ISourceControl sc = new SourceControl.SVN(scUser, scPass, true);
-
 
                 foreach (ServerElement s in reportServers.Servers)
                 {

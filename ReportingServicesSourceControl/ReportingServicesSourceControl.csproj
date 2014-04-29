@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ReportingServices\Proxy\ReportingService2005.cs" />
+    <Compile Include="SourceControl\git.cs" />
     <Compile Include="SourceControl\ObjectTree.cs" />
     <Compile Include="ReportingServices\IReportService.cs" />
     <Compile Include="SourceControl\ISourceControl.cs" />
