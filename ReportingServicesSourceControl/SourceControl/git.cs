@@ -135,19 +135,21 @@ namespace ReportingServicesSourceControl.SourceControl
                         else
                         {
 
-                            StreamReader sr = new StreamReader(filename);
-
-                            string existingFile = sr.ReadToEnd();
-                            sr.Close();
-
-                            if (existingFile != newFile)
+                            using (StreamReader sr = new StreamReader(filename))
                             {
-                                //System.Console.WriteLine("Updating: " + filename);
-                                Update(filename);
-                            }
-                            else
-                            {
-                                writeFile = false;
+
+                                string existingFile = sr.ReadToEnd();
+                                sr.Close();
+
+                                if (existingFile != newFile)
+                                {
+                                    //System.Console.WriteLine("Updating: " + filename);
+                                    Update(filename);
+                                }
+                                else
+                                {
+                                    writeFile = false;
+                                }
                             }
                         }
                     }
