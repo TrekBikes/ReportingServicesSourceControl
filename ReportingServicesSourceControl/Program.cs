@@ -7,6 +7,7 @@ using System.IO;
 using System.Collections.Specialized;
 using System.Net.Mail;
 
+
 namespace ReportingServicesSourceControl
 {
     class Program
@@ -18,6 +19,7 @@ namespace ReportingServicesSourceControl
         private static string _emailFrom;
         private static string _emailTo;
         private static bool _alertOnEmbeddedDataSource;
+        private static readonly log4net.ILog _logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         static void Main(string[] args)
         {
@@ -26,6 +28,8 @@ namespace ReportingServicesSourceControl
             _emailFrom = ConfigurationManager.AppSettings["EmailFrom"];
             _emailTo = ConfigurationManager.AppSettings["EmailTo"];
             _alertOnEmbeddedDataSource = bool.Parse(ConfigurationManager.AppSettings["AlertOnEmbeddedDataSource"]);
+
+            log4net.Config.XmlConfigurator.Configure(new FileInfo(ConfigurationManager.AppSettings["Log4NetConfigFile"]));
 
             string lastServer = "Unknown";
 
@@ -43,6 +47,8 @@ namespace ReportingServicesSourceControl
             }
             else
             {
+                //System.Console.WriteLine("Bad SourceControlProvider");
+                _logger.Error("Bad SourceControlProvider");
                 throw new Exception("Bad SourceControlProvider");
             }
 
@@ -58,6 +64,8 @@ namespace ReportingServicesSourceControl
                     string serverPath = rootPath + "\\" + s.Name;
                     if (!Directory.Exists(serverPath))
                     {
+                        //System.Console.WriteLine(string.Format("Server rootPath path not found ({0})", serverPath));
+                        _logger.Error(string.Format("Server rootPath path not found ({0})", serverPath));
                         throw new Exception(string.Format("Server rootPath path not found ({0})", serverPath));
                     }
 
@@ -73,9 +81,11 @@ namespace ReportingServicesSourceControl
                         rs = new ReportingServices.MSRS2005(s.Url, s.Username, s.Password, s.Domain);
                     }
 
-                    System.Console.WriteLine("START: Getting ObjectTrees");
+                    //System.Console.WriteLine("START: Getting ObjectTrees");
+                    _logger.Debug("START: Getting ObjectTrees");
                     SourceControl.ObjectTree ot = GetObjectTree("", rs);
-                    System.Console.WriteLine("END: Getting ObjectTrees");
+                    //System.Console.WriteLine("END: Getting ObjectTrees");
+                    _logger.Debug("END: Getting ObjectTrees");
 
                     //DumpObjectTree(ot);
                     sc.LogObjectTree(serverPath + "\\Reports", ot);
@@ -94,7 +104,8 @@ namespace ReportingServicesSourceControl
                 }
                 else
                 {
-                    Console.WriteLine(ex.Message + " " + ex.InnerException + " " + ex.StackTrace);
+                    //Console.WriteLine(ex.Message + " " + ex.InnerException + " " + ex.StackTrace);
+                    _logger.Fatal(String.Format("Unhandled Exception in Main -- {0} , {1} , {2}",ex.Message,ex.InnerException,ex.StackTrace));
                     throw ex;
                 }
             }
@@ -102,11 +113,13 @@ namespace ReportingServicesSourceControl
 
         public static void DumpObjectTree(SourceControl.ObjectTree ot)
         {
-            System.Console.WriteLine("== Folder: " + ot.Name);
+            //System.Console.WriteLine("== Folder: " + ot.Name);
+            _logger.Debug("== Folder: " + ot.Name);
 
             foreach (string key in ot.Objects)
             {
-                System.Console.WriteLine(key);
+                //System.Console.WriteLine(key);
+                _logger.Debug(key);
             }
 
             foreach (SourceControl.ObjectTree childOT in ot.ObjectTrees)
@@ -133,15 +146,15 @@ namespace ReportingServicesSourceControl
                 if (folder != "Users Folders")
                 {
                     //System.Console.WriteLine("Getting ObjectTree For: " + Path + "/" + folder + "...");
+                    _logger.Debug("Getting ObjectTree For: " + Path + "/" + folder + "...");
                     ot.ObjectTrees.Add(GetObjectTree(Path + "/" + folder, RS));
                 }
                 else
                 {
-                    System.Console.WriteLine("Skipping folder: " + folder);
+                    //System.Console.WriteLine("Not Users Folders, Skipping folder: " + folder);
+                    _logger.Debug("Not Users Folders, Skipping folder: " + folder);
                 }
             }
-
-
             return ot;
         }
 

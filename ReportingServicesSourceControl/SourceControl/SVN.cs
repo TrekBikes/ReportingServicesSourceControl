@@ -14,6 +14,7 @@ namespace ReportingServicesSourceControl.SourceControl
         bool _svnAuth = false;
         string _username;
         string _password;
+        private static readonly log4net.ILog _logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public SVN(bool SVNAuth)
         {
@@ -76,6 +77,7 @@ namespace ReportingServicesSourceControl.SourceControl
             }
 
             //System.Console.WriteLine("svn.exe " + svnCmd.Arguments);
+            _logger.Debug("svn.exe " + svnCmd.Arguments);
 
             Process pCmd = Process.Start(svnCmd);
 
@@ -123,6 +125,7 @@ namespace ReportingServicesSourceControl.SourceControl
                 if (filename.Length < 260)
                 {
                     //System.Console.WriteLine("Working with: " + filename);
+                    _logger.Debug(String.Format("Working with file {0}",filename));
                     string newFile = Objects[key];
 
                     bool writeFile = true;
@@ -146,6 +149,7 @@ namespace ReportingServicesSourceControl.SourceControl
                             if (existingFile != newFile)
                             {
                                 //System.Console.WriteLine("Updating: " + filename);
+                                _logger.Debug(String.Format("Updating file {0}",filename));
                                 Update(filename);
                             }
                             else
@@ -167,12 +171,14 @@ namespace ReportingServicesSourceControl.SourceControl
                     if (addFile)
                     {
                         //System.Console.WriteLine("Adding File: " + filename);
+                        _logger.Debug(String.Format("Adding file {0}",filename));
                         Add(filename);
                     }
                 }
                 else
                 {
-                    System.Console.WriteLine("Filename \"" + filename + "\" is greater than 260 characters, skipping");
+                    //System.Console.WriteLine("Filename \"" + filename + "\" is greater than 260 characters, skipping");
+                    _logger.Warn("Filename \"" + filename + "\" is greater than 260 characters, skipping");
                 }
             }
 
@@ -184,6 +190,7 @@ namespace ReportingServicesSourceControl.SourceControl
                     string filename = fullPath + @"\" + file;
                     filename = filename.Replace(@"\\", @"\");
                     //System.Console.WriteLine("Deleting File: " + filename);
+                    _logger.Debug(String.Format("Deleting file {0}",filename));
                     Delete(filename);
 
                 }
@@ -205,6 +212,7 @@ namespace ReportingServicesSourceControl.SourceControl
             if (!Directory.Exists(fullPath))
             {
                 //System.Console.WriteLine("Creating Directory: " + fullPath);
+                _logger.Debug(String.Format("Creating Directory {0}",fullPath));
                 Directory.CreateDirectory(fullPath);
                 IsThisNew = true;
             }
@@ -219,6 +227,7 @@ namespace ReportingServicesSourceControl.SourceControl
             if (IsThisNew && !IsParentNew)
             {
                 //System.Console.WriteLine("Adding Folder: " + fullPath);
+                _logger.Debug(String.Format("Adding Folder {0}",fullPath));
                 Add(System.Text.RegularExpressions.Regex.Replace(fullPath,@"\\$",""));
             }
 

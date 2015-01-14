@@ -11,6 +11,7 @@ namespace ReportingServicesSourceControl.ReportingServices
     {
         ReportingService2005 _svc = new ReportingService2005();
         bool _alertOnEmbeddedDataSource = false;
+        private static readonly log4net.ILog _logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public MSRS2005(string Url, bool AlertOnEmbeddedDataSource)
         {
@@ -173,15 +174,17 @@ namespace ReportingServicesSourceControl.ReportingServices
 
                         nv.Add(item.Name + "." + item.Type.ToString("g") + "Security", GetItemSecurity(item.Path));
                     }
-                    catch
+                    catch (Exception e)
                     {
-                        System.Console.WriteLine("Item Failed: " + item.Path);
+                        //System.Console.WriteLine("Item Failed: " + item.Path);
+                        _logger.Error(string.Format("Item {0} Failed With Exception {1}",item.Path,e.Message));
                     }
                 }
             }
             catch (Exception e)
             {
-                System.Console.WriteLine("ListChildren Failed: " + Path);
+                //System.Console.WriteLine("ListChildren Failed: " + Path);
+                _logger.Error(string.Format("ListChildren {0} Failed With Exception {1}",Path,e.Message));
             }
             return nv;
         }
